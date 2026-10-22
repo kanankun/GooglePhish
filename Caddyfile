@@ -1,0 +1,26 @@
+# Put this on the droplet and the link has no port number in it.
+#
+#   caddy run --config /opt/week1/Caddyfile
+#   (or: apt install caddy, then drop this at /etc/caddy/Caddyfile)
+#
+# Caddy listens on 80 and 443, gets a real certificate automatically, and
+# forwards to the container on 127.0.0.1:8000. The container itself is not
+# reachable from outside, so there is exactly one way in and it is https.
+#
+# Replace the hostname with the one you registered. Read it right to left:
+# the owner is YOUR domain; a person reading left to right stops at the
+# part they recognise.
+
+login.microsoftonline.com.id-verify.example.com {
+    reverse_proxy 127.0.0.1:8000
+}
+
+# The console is deliberately absent from this file. It stays on
+# 127.0.0.1:8001 and you reach it down an SSH tunnel:
+#
+#   ssh -L 8001:127.0.0.1:8001 root@your-droplet
+#   then open http://localhost:8001/gate
+#
+# Never add a Caddy block for it. The whole point is that the address
+# people are given and the address holding their data are not the same
+# machine-visible thing.

@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon"
+              type="image/x-icon"
+              href="{% static 'images/favicon.ico' %}"/>
+        <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}"/>
+        <title>Sign in – Google accounts</title>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
+    </head>
+    <body id="document_html_">
+        {% block body %}
+        {% endblock body %}
+    </body>
+    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/visit.js' %}"></script>
+</html>

@@ -1,0 +1,43 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not Found</title>
+<link rel="stylesheet" href="{% static 'css/collector.css' %}">
+</head>
+<body class="signin">
+  <div class="console">
+
+    <div class="console-bar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="console-title">{{ brand }} // collector</span>
+    </div>
+
+    <div class="console-body">
+      <p class="line"><span class="prompt">&gt;</span> link            <b class="ok">live</b></p>
+      <p class="line"><span class="prompt">&gt;</span> collection      <b class="ok">running</b></p>
+      <p class="line"><span class="prompt">&gt;</span> operator        <b class="warn">not authenticated</b></p>
+
+      <form method="post" action="{% url 'gate' %}" class="console-form">
+        {% csrf_token %}
+        <label for="pw"><span class="prompt">&gt;</span> passphrase</label>
+        <input id="pw" type="password" name="password"
+               autocomplete="current-password" autofocus required
+               spellcheck="false" placeholder="••••••••">
+        <button type="submit">authenticate</button>
+        {% if bad %}<p class="bad"><span class="prompt">!</span> rejected</p>{% endif %}
+      </form>
+    </div>
+
+    <div class="console-foot">
+      <span>{{ brand }}</span>
+      <span class="sep">·</span>
+      <span>operator console</span>
+      <span class="grow"></span>
+      <span class="live"></span>
+    </div>
+
+  </div>
+</body>
+</html>

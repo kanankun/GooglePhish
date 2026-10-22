@@ -1,0 +1,15 @@
+# Plain HTTP front door (COMPOSE_PROFILES=http).
+#
+# No certificate, no TLS, so no browser warning - and no padlock. Serves
+# the page on port 80 for both localhost and the LAN IP in PUBLIC_HOST, so
+# the address has no port in it.
+#
+# auto_https off stops Caddy from trying to redirect to https or fetch a
+# cert, which is what we want in plain-http mode.
+{
+	auto_https off
+}
+
+http://localhost, http://{$PUBLIC_HOST} {
+	reverse_proxy phish:8000
+}

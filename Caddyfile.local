@@ -1,0 +1,28 @@
+# A browser hitting a bare IP sends no SNI, and with named sites Caddy
+# then has no cert to pick and aborts the handshake (ERR_SSL_PROTOCOL_ERROR
+# / "tlsv1 alert internal error"). default_sni tells it which cert to use
+# when SNI is absent, so the IP endpoint works from other devices.
+{
+	default_sni {$PUBLIC_HOST}
+}
+
+# Localhost rehearsal with HTTPS from a self-signed cert.
+#
+# `tls internal` makes Caddy run its own local certificate authority and
+# issue a cert for localhost. The browser does not trust that CA, so you
+# get the "your connection is not private" warning - that is the
+# self-signed cert doing its job; click through it for the demo.
+#
+# Caddy serves https on 443 and redirects plain http on 80 up to it, so
+# the address is just https://localhost with no port. It forwards to the
+# phish container over the private compose network.
+#
+# This file is for local use only. The real droplet config is in Caddyfile.
+# Serves both localhost (on this machine) and the LAN IP in PUBLIC_HOST
+# (for other devices in the room). tls internal issues a self-signed cert
+# covering both. Keep PUBLIC_HOST something other than "localhost" here, or
+# the two site addresses collide.
+localhost, {$PUBLIC_HOST} {
+    tls internal
+    reverse_proxy phish:8000
+}

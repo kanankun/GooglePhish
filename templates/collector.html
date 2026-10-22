@@ -1,0 +1,125 @@
+{% load static ago %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>collector</title>
+<link rel="stylesheet" href="{% static 'css/collector.css' %}">
+</head>
+<body>
+
+<header class="bar">
+  <span class="live" title="live"></span>
+  <strong>collector</strong>
+  <span class="muted">{{ brand }}</span>
+  <span class="grow"></span>
+  <a href="{% url 'collector' %}{% if not reveal %}?reveal=1{% endif %}">{% if reveal %}mask{% else %}reveal{% endif %}</a>
+  <a href="{% url 'wipe' %}" class="danger" onclick="return confirm('Delete every row?')">wipe</a>
+  <a href="{% url 'change-password' %}" class="muted-link">password</a>
+  <a href="{% url 'gate' %}?logout" class="muted-link">sign out</a>
+</header>
+
+{% if using_default %}
+<p class="default-warning">
+  You are signed in with the default password.
+  <a href="{% url 'change-password' %}">Change it</a> before this box is public.
+</p>
+{% endif %}
+
+<section class="stats">
+  <div class="stat"><b id="n-signins">{{ signin_count }}</b><span>typed their details</span></div>
+  <div class="stat"><b id="n-visits">{{ visit_count }}</b><span>opened the link</span></div>
+  <div class="stat"><b id="n-rate">{% if visit_count %}{% widthratio signin_count visit_count 100 %}%{% else %}-{% endif %}</b><span>went all the way</span></div>
+</section>
+
+<h2>submitted the form</h2>
+
+<div class="panel">
+<table>
+  <thead>
+    <tr><th>when</th><th>address</th><th>browser</th><th>email</th><th>password</th></tr>
+  </thead>
+  <tbody id="tb-signins">
+  {% for s in signins %}
+    <tr>
+      <td class="stamp" title="{{ s.date_time|date:'D j M Y g:i:s A' }}">
+        {{ s.date_time|date:"g:i:s A" }}<span class="ago">{{ s.date_time|shortago }}</span></td>
+      <td class="key">{{ s.client_ip|default:"-" }}</td>
+      <td>{{ s.browser_os }}</td>
+      <td class="key">{{ s.email }}</td>
+      <td class="{% if reveal %}hot{% else %}dim{% endif %}">{{ s.shown }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="empty">nothing submitted</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if reveal %}
+  <p class="caption warn">Passwords are visible. Switch back to <b>mask</b> before anyone else looks at this.</p>
+{% else %}
+  <p class="caption">Passwords are masked. <b>reveal</b> is for your own demo row &mdash; think before using it with a room's data on screen.</p>
+{% endif %}
+
+{% if nat %}
+<p class="nat-note">
+  Every address in these tables is Docker's gateway, not the visitor's.
+  That is this laptop only &mdash; behind the proxy on the server the real
+  addresses come through. Everything else is correct.
+</p>
+{% endif %}
+
+<h2>clicked the link <em>&mdash; and typed nothing</em></h2>
+
+<div class="panel">
+<table>
+  <thead>
+    <tr><th>first</th><th>last</th><th>loads</th><th>address</th><th>browser</th><th>screen</th><th>timezone</th><th>language</th><th>cpu / ram</th></tr>
+  </thead>
+  <tbody id="tb-visits">
+  {% for v in visits %}
+    <tr>
+      <td class="stamp" title="{{ v.created|date:'D j M Y g:i:s A' }}">
+        {{ v.created|date:"g:i:s A" }}<span class="ago">{{ v.created|shortago }}</span></td>
+      <td class="stamp dim">{{ v.last_seen|date:"g:i:s A" }}<span class="ago">{{ v.last_seen|shortago }}</span></td>
+      <td class="{% if v.hits > 1 %}key{% else %}dim{% endif %}">{{ v.hits }}</td>
+      <td class="key">{{ v.client_ip|default:"-" }}</td>
+      <td>{{ v.browser }} / {{ v.os }}</td>
+      <td>{{ v.screen|default:"-" }}</td>
+      <td>{{ v.timezone|default:"-" }}</td>
+      <td class="dim">{{ v.languages|default:v.language|truncatechars:16 }}</td>
+      <td class="dim">{{ v.cores|default:"?" }} / {{ v.memory|default:"?" }}GB</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="9" class="empty">no visits yet &mdash; send the link</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="caption">
+  Nobody in that table typed anything. They opened a link and closed it.
+  <b>loads</b> counts how many times that same browser came back.
+</p>
+
+<script>
+/* Refresh in place rather than reloading, so nothing flashes and the
+   scroll position survives while a row lands. */
+(function () {
+    var here = location.href;
+    setInterval(function () {
+        fetch(here, { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.text() : null; })
+            .then(function (html) {
+                if (!html) return;
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                ['tb-visits', 'tb-signins', 'n-visits', 'n-signins', 'n-rate'].forEach(function (id) {
+                    var a = doc.getElementById(id), b = document.getElementById(id);
+                    if (a && b && a.innerHTML !== b.innerHTML) b.innerHTML = a.innerHTML;
+                });
+            })
+            .catch(function () {});
+    }, 3000);
+})();
+</script>
+</body>
+</html>

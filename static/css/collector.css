@@ -1,0 +1,182 @@
+/* Built for a projector in a lit room.
+ *
+ * Dark terminals look right on a laptop and disappear on a screen three
+ * metres away with the lights on. So: white ground, black ink, one accent,
+ * and type large enough to read from the back row. Monospace throughout,
+ * because the content is addresses and machine facts. */
+:root {
+    --ink:    #0b0b0c;
+    --muted:  #6b7177;
+    --line:   #e4e6e9;
+    --accent: #047857;
+    --hot:    #b91c1c;
+    --wash:   #f6f7f8;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0; padding: 0 0 70px;
+    background: #fff; color: var(--ink);
+    font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+
+/* --- top bar: the one dark element, so it anchors the page ---------- */
+.bar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 28px; background: var(--ink); color: #fff;
+    position: sticky; top: 0; z-index: 5;
+}
+.bar strong { letter-spacing: 2.5px; font-size: 15px; text-transform: lowercase; }
+.bar .muted { color: #8b9299; letter-spacing: 1px; font-size: 13px; }
+.bar .grow  { flex: 1; }
+.bar a {
+    color: #fff; border: 1px solid #3a4046; border-radius: 3px;
+    padding: 5px 13px; font-size: 13px; letter-spacing: 1px;
+}
+.bar a:hover      { background: #2a2f34; }
+.bar a.danger     { color: #fca5a5; border-color: #5a3030; }
+.bar a.muted-link { color: #8b9299; border-color: #2a2f34; }
+
+.live {
+    width: 9px; height: 9px; border-radius: 50%; background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34,197,94,.25);
+    animation: pulse 2s ease-in-out infinite; flex: none;
+}
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+
+/* --- the three numbers --------------------------------------------- */
+.stats { display: flex; gap: 0; border-bottom: 2px solid var(--ink); }
+.stat  { flex: 1; padding: 26px 28px; border-right: 1px solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat b {
+    display: block; font-size: 52px; line-height: 1; font-weight: 700;
+    letter-spacing: -2px;
+}
+.stat span {
+    display: block; margin-top: 8px; color: var(--muted);
+    font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase;
+}
+
+h2 {
+    margin: 34px 28px 12px; font-size: 13px; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 700;
+}
+h2 em {
+    color: var(--muted); font-style: normal;
+    text-transform: none; letter-spacing: 0; font-weight: 400;
+}
+
+/* --- tables ---------------------------------------------------------- */
+.panel { margin: 0 28px; border: 1px solid var(--line); overflow: hidden auto; max-height: 44vh; }
+table  { width: 100%; border-collapse: collapse; }
+thead th {
+    position: sticky; top: 0; background: var(--wash);
+    text-align: left; font-size: 11px; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--muted); font-weight: 700;
+    padding: 11px 16px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+td {
+    padding: 11px 16px; border-bottom: 1px solid #f1f2f4;
+    white-space: nowrap; font-size: 14.5px;
+}
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--wash); }
+td.key   { font-weight: 700; }
+td.dim   { color: var(--muted); }
+td.hot   { color: var(--hot); font-weight: 700; }
+td.empty { color: #9aa1a8; text-align: center; padding: 30px; }
+
+.caption { color: var(--muted); margin: 12px 28px 0; font-size: 13.5px; }
+.caption b { color: var(--ink); }
+.caption.warn { color: var(--hot); font-weight: 700; }
+
+/* Still on the default password. */
+.default-warning {
+    margin: 0; padding: 12px 28px;
+    background: #fff4ed; border-bottom: 1px solid #f0d9c8;
+    color: #9a3412; font-size: 13.5px;
+}
+.default-warning a { color: #9a3412; text-decoration: underline; }
+
+/* --- the way in: an operator console, not a login box ------------- */
+body.signin {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px;
+    background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.022) 0 1px, transparent 1px 3px),
+        #fff;
+}
+.console {
+    width: 400px; max-width: 100%;
+    border: 2px solid var(--ink);
+    box-shadow: 7px 7px 0 rgba(11,11,12,.09);
+    background: #fff;
+}
+.console-bar {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 14px; background: var(--ink);
+}
+.console-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+.console-bar .dot.r { background: #ff5f57; }
+.console-bar .dot.y { background: #febc2e; }
+.console-bar .dot.g { background: #28c840; }
+.console-title {
+    margin-left: 8px; color: #fff;
+    font-size: 12.5px; letter-spacing: 1.6px;
+}
+
+.console-body { padding: 22px 24px 20px; }
+.line { margin: 0 0 7px; font-size: 13px; color: var(--muted); }
+.line b { float: right; font-weight: 700; }
+.line b.ok   { color: var(--accent); }
+.line b.warn { color: #b45309; }
+.prompt { color: var(--accent); font-weight: 700; margin-right: 7px; }
+
+.console-form { margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 18px; }
+.console-form label {
+    display: block; font-size: 12px; letter-spacing: 1.2px;
+    color: var(--muted); margin-bottom: 6px; text-transform: uppercase;
+}
+.console-form input {
+    width: 100%; padding: 11px 13px; margin-bottom: 14px;
+    border: 1px solid var(--line); border-radius: 0;
+    font: inherit; font-size: 15px; letter-spacing: 2px; background: var(--wash);
+}
+.console-form input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent); background: #fff;
+}
+.console-form button {
+    width: 100%; padding: 12px; border: 0; cursor: pointer;
+    background: var(--ink); color: #fff;
+    font: inherit; font-size: 13px; letter-spacing: 2.4px;
+}
+.console-form button:hover { background: #2a2f34; }
+.console-form .bad  { color: var(--hot); margin: 12px 0 0; font-size: 13px; }
+.console-form .good { color: var(--accent); margin: 12px 0 0; font-size: 13px; }
+
+.console-foot {
+    display: flex; align-items: center; gap: 7px;
+    padding: 11px 16px; border-top: 2px solid var(--ink);
+    background: var(--wash); color: var(--muted);
+    font-size: 11.5px; letter-spacing: 1.4px;
+}
+.console-foot a { color: var(--muted); }
+.console-foot a:hover { color: var(--ink); }
+.console-foot .grow { flex: 1; }
+.console-foot .sep { opacity: .5; }
+
+/* Running on a laptop, where Docker hides the real source address. */
+.nat-note {
+    margin: 14px 28px -4px; padding: 10px 14px;
+    background: var(--wash); border-left: 3px solid var(--muted);
+    color: var(--muted); font-size: 12.5px; line-height: 1.5;
+}
+
+/* Real clock times, not "7 minutes ago". */
+td.stamp { font-variant-numeric: tabular-nums; letter-spacing: .3px; }
+td.stamp .ago {
+    display: block; color: var(--muted);
+    font-size: 11.5px; letter-spacing: .6px; margin-top: 2px;
+}
