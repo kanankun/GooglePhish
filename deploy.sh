@@ -116,8 +116,8 @@ echo
 say "Phishing page:  ${SCHEME}://${PUBLIC_HOST}"
 [ "$PROFILE" = "https" ] && echo "    (self-signed cert - the browser warning is expected; click through)"
 echo
-say "Console (data):  private on 127.0.0.1:8001 - reach it over an SSH tunnel:"
-echo "    ssh -L 8001:127.0.0.1:8001 <user>@<this-server>"
+say "Console (data):  no port published anywhere. From your laptop run:"
+echo "    ./console.sh <user>@<this-server>"
 echo "    then open http://localhost:8001/gate"
 echo
 say "Logs:  $COMPOSE logs -f      Stop:  $COMPOSE down"

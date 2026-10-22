@@ -16,10 +16,9 @@ services:
     image: googlephish:local
     container_name: week1-phish
     command: ["sh", "-c", "poetry run python manage.py migrate && poetry run gunicorn GooglePhish.wsgi:application -b 0.0.0.0:8000 --workers 3 --threads 2 --timeout 60"]
-    # No host port: Caddy is the only way in and reaches this container
-    # over the private compose network as phish:8000.
-    expose:
-      - "8000"
+    # No ports declared at all. Caddy is the only way in and reaches this
+    # container over the private compose network as phish:8000 (the app
+    # listens on 8000 inside the container; nothing is exposed to the host).
     volumes:
       - ./data:/GooglePhish/data
     environment:
@@ -34,17 +33,20 @@ services:
       BRAND: "${BRAND:-evilucimx}"
     restart: unless-stopped
 
-  # Your console. Always loopback, whatever BIND says - your friend in the
-  # room is meant to see the page, never the list of who fell for it.
-  # On the droplet, reach it with:
-  #     ssh -L 8001:127.0.0.1:8001 root@your-droplet
+  # Your console. No port is published anywhere - your friend in the room
+  # is meant to see the page, never the list of who fell for it. Reach it
+  # from your laptop with:
+  #     ./console.sh root@your-droplet
+  # which tunnels straight to this container over SSH without exposing it.
   c2:
     image: googlephish:local
     container_name: week1-c2
     depends_on:
       - phish
-    ports:
-      - "127.0.0.1:8001:8000"
+    # No ports declared at all - the host binds only 80/443 (Caddy). The
+    # console still listens on 8000 inside the container; reach it with
+    # ./console.sh <user>@<server> , which tunnels straight to the
+    # container over SSH without ever publishing a port.
     volumes:
       - ./data:/GooglePhish/data
     environment:
